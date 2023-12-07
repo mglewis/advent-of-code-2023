@@ -16,3 +16,4 @@ Cargo.lock
 inputs/day_*.txt
 
 .vscode
+.idea
