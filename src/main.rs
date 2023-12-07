@@ -69,6 +69,8 @@ fn main() {
     let result: ReturnType = match (day, part) {
         (1, 'a') => day_1::part_a(&input).into(),
         (1, 'b') => day_1::part_b(&input).into(),
+        (2, 'a') => day_2::part_a(&input).into(),
+        (2, 'b') => day_2::part_b(&input).into(),
         (_, _) => panic!("Unrecognised day [{}] part [{}]", day, part),
     };
 
