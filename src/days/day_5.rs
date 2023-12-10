@@ -1,4 +1,5 @@
 use advent_of_code_2023::to_u64;
+use rayon::prelude::*;
 use std::str::FromStr;
 
 #[derive(Debug, PartialEq)]
@@ -50,8 +51,18 @@ fn build_mappings(body_str: &str) -> Vec<Vec<Range>> {
         .collect::<Vec<Vec<Range>>>()
 }
 
-fn convert_id(id: u64, ranges: &Vec<Range>) -> u64 {
+fn convert_id_from_ranges(id: u64, ranges: &Vec<Range>) -> u64 {
     ranges.iter().find_map(|r| r.convert(id)).unwrap_or(id)
+}
+
+fn convert_id_from_mappings(seed_id: u64, mappings: &Vec<Vec<Range>>) -> u64 {
+    mappings
+        .iter()
+        .fold(seed_id, |id, ranges| convert_id_from_ranges(id, ranges))
+}
+
+fn create_range(start_id: u64, range: u64) -> Vec<u64> {
+    (start_id..(start_id + range)).collect::<Vec<u64>>()
 }
 
 pub fn part_a(input: &str) -> i64 {
@@ -66,11 +77,31 @@ pub fn part_a(input: &str) -> i64 {
 
     let final_ids = seed_ids
         .iter()
-        .map(|&seed_id| {
-            mappings
-                .iter()
-                .fold(seed_id, |id, ranges| convert_id(id, ranges))
-        })
+        .map(|&seed_id| convert_id_from_mappings(seed_id, &mappings))
+        .collect::<Vec<u64>>();
+
+    final_ids.into_iter().min().unwrap() as i64
+}
+
+pub fn part_b(input: &str) -> i64 {
+    let (seed_str, body_str) = input.split_once("\n").unwrap();
+    let seed_row = seed_str
+        .replace("seeds: ", "")
+        .trim()
+        .split(" ")
+        .map(|x| to_u64(x))
+        .collect::<Vec<u64>>();
+    let seed_ids = seed_row
+        .chunks(2)
+        .map(|pair| create_range(pair[0], pair[1]))
+        .flatten()
+        .collect::<Vec<u64>>();
+
+    let mappings = build_mappings(body_str);
+
+    let final_ids = seed_ids
+        .par_iter()
+        .map(|&seed_id| convert_id_from_mappings(seed_id, &mappings))
         .collect::<Vec<u64>>();
 
     final_ids.into_iter().min().unwrap() as i64
@@ -109,5 +140,11 @@ mod tests {
     fn test_part_a() {
         let input = read_test_file(5);
         assert_eq!(part_a(&input), 35);
+    }
+
+    #[test]
+    fn test_part_b() {
+        let input = read_test_file(5);
+        assert_eq!(part_b(&input), 46);
     }
 }
