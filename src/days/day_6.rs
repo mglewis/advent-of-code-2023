@@ -1,17 +1,17 @@
-use advent_of_code_2023::to_u32;
+use advent_of_code_2023::to_u64;
 
 struct Race {
-    time: u32,
-    distance: u32,
+    time: u64,
+    distance: u64,
 }
 
 impl Race {
-    fn record_beating_permutations(&self) -> u32 {
+    fn record_beating_permutations(&self) -> u64 {
         let distance_target = (self.distance + 1) as f64;
         let time_to_race = -1.0 * self.time as f64;
         let (x1, x2) = solve_quadratic(1.0, time_to_race, distance_target);
-        let lower_bound = f64::min(x1, x2).ceil() as u32;
-        let upper_bound = f64::max(x1, x2) as u32;
+        let lower_bound = f64::min(x1, x2).ceil() as u64;
+        let upper_bound = f64::max(x1, x2) as u64;
         upper_bound - lower_bound + 1
     }
 }
@@ -27,16 +27,21 @@ fn solve_quadratic(a: f64, b: f64, c: f64) -> (f64, f64) {
     (x1, x2)
 }
 
-fn to_numeric_list(raw_str: &str, label: &str) -> Vec<u32> {
+fn to_numeric_list(raw_str: &str, label: &str) -> Vec<u64> {
     let cleaned_str = raw_str.replace(label, "").trim().to_string();
     cleaned_str
         .split(" ")
         .filter(|x| x.len() != 0)
-        .map(|x| to_u32(x))
-        .collect::<Vec<u32>>()
+        .map(|x| to_u64(x))
+        .collect::<Vec<u64>>()
 }
 
-pub fn part_a(input: &str) -> u32 {
+fn to_number(raw_str: &str, label: &str) -> u64 {
+    let cleaned_str = raw_str.replace(label, "").trim().to_string();
+    to_u64(&cleaned_str.replace(" ", ""))
+}
+
+pub fn part_a(input: &str) -> i64 {
     let (time_str, distance_str) = input.split_once("\n").unwrap();
     let times = to_numeric_list(time_str, "Time:");
     let distances = to_numeric_list(distance_str, "Distance:");
@@ -53,8 +58,17 @@ pub fn part_a(input: &str) -> u32 {
     let race_permutations = races
         .iter()
         .map(|r| r.record_beating_permutations())
-        .collect::<Vec<u32>>();
-    race_permutations.iter().product()
+        .collect::<Vec<u64>>();
+    race_permutations.iter().product::<u64>() as i64
+}
+
+pub fn part_b(input: &str) -> i64 {
+    let (time_str, distance_str) = input.split_once("\n").unwrap();
+    let race = Race {
+        time: to_number(time_str, "Time:"),
+        distance: to_number(distance_str, "Distance:"),
+    };
+    race.record_beating_permutations() as i64
 }
 
 #[cfg(test)]
@@ -72,8 +86,20 @@ mod tests {
     }
 
     #[test]
+    fn test_to_number() {
+        let raw_str = "Distance:  9  40  200";
+        assert_eq!(to_number(raw_str, "Distance:"), 940200);
+    }
+
+    #[test]
     fn test_part_a() {
         let input = read_test_file(6);
         assert_eq!(part_a(&input), 288);
+    }
+
+    #[test]
+    fn test_part_b() {
+        let input = read_test_file(6);
+        assert_eq!(part_b(&input), 71503);
     }
 }
