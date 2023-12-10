@@ -10,3 +10,6 @@ argparse = "0.2.2"
 
 # used for day 3
 itertools = "0.12.0"
+
+# used in day 4
+num = "0.4.1"
