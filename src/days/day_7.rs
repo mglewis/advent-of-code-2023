@@ -4,6 +4,7 @@ use itertools::Itertools;
 use std::cmp::Ordering;
 use std::convert::TryInto;
 
+#[derive(Copy, Clone)]
 enum Part {
     PartA,
     PartB,
@@ -70,27 +71,16 @@ impl Ord for Hand {
     }
 }
 
-fn part_a_card_char_to_rank(c: char) -> u32 {
+fn card_char_to_rank(c: char, part: Part) -> u32 {
     if c.is_digit(10) {
         return c.to_digit(10).unwrap();
     }
     match c {
         'T' => 10,
-        'J' => 11,
-        'Q' => 12,
-        'K' => 13,
-        'A' => 14,
-        _ => panic!("Unexpected char '{}' when converting to rank", c),
-    }
-}
-
-fn part_b_card_char_to_rank(c: char) -> u32 {
-    if c.is_digit(10) {
-        return c.to_digit(10).unwrap();
-    }
-    match c {
-        'T' => 10,
-        'J' => 1,
+        'J' => match part {
+            PartA => 11,
+            PartB => 1,
+        },
         'Q' => 12,
         'K' => 13,
         'A' => 14,
@@ -136,14 +126,16 @@ fn sort_rank_and_sum_bids(hands: &Vec<Hand>) -> u32 {
 }
 
 fn hand_from_str(s: &str, part: Part) -> Hand {
-    // it's necessary to annotate the function definitions here to avoid a compile time error
-    let (score_func, rank_func): (fn(Cards) -> u32, fn(char) -> u32) = match part {
-        PartA => (part_a_score, part_a_card_char_to_rank),
-        PartB => (part_b_score, part_b_card_char_to_rank),
+    let score_func = match part {
+        PartA => part_a_score,
+        PartB => part_b_score,
     };
 
     let (cards_str, bid_str) = s.split_once(" ").unwrap();
-    let cards = cards_str.chars().map(rank_func).collect::<Vec<u32>>();
+    let cards = cards_str
+        .chars()
+        .map(|c| card_char_to_rank(c, part))
+        .collect::<Vec<u32>>();
     Hand {
         cards: cards.try_into().unwrap(),
         bid: to_u32(bid_str),
@@ -209,11 +201,10 @@ mod tests {
 
     #[test]
     fn test_card_char_to_rank() {
-        assert_eq!(part_a_card_char_to_rank('3'), 3);
-        assert_eq!(part_a_card_char_to_rank('J'), 11);
-        assert_eq!(part_a_card_char_to_rank('A'), 14);
-        assert_eq!(part_b_card_char_to_rank('6'), 6);
-        assert_eq!(part_b_card_char_to_rank('J'), 1);
+        assert_eq!(card_char_to_rank('3', PartA), 3);
+        assert_eq!(card_char_to_rank('A', PartA), 14);
+        assert_eq!(card_char_to_rank('J', PartA), 11);
+        assert_eq!(card_char_to_rank('J', PartB), 1);
     }
 
     #[test]
