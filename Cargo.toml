@@ -16,3 +16,6 @@ num = "0.4.1"
 
 # used in day 5
 rayon = "1.8.0"
+
+# used in day 8
+num-integer = "0.1.45"
