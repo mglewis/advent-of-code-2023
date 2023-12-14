@@ -8,6 +8,10 @@ pub fn to_u64(i: &str) -> u64 {
     i.trim().parse::<u64>().unwrap()
 }
 
+pub fn to_i64(i: &str) -> i64 {
+    i.trim().parse::<i64>().unwrap()
+}
+
 pub fn read_file(day: u32) -> String {
     read_file_path(day, vec!["inputs"])
 }
